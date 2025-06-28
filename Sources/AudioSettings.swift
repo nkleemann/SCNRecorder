@@ -41,12 +41,12 @@ public struct AudioSettings {
 
 extension AudioSettings {
 
-  init(audioFormat: AVAudioFormat) {
+  public init(audioFormat: AVAudioFormat) {
     sampleRate = audioFormat.sampleRate
     numberOfChannels = Int(audioFormat.channelCount)
   }
 
-  var outputSettings: [String: Any] {
+  public var outputSettings: [String: Any] {
     [
       AVFormatIDKey: format,
       AVSampleRateKey: sampleRate,
