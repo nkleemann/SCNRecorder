@@ -27,30 +27,54 @@ import Foundation
 import AVFoundation
 
 public struct AudioSettings {
-
-  static let defaultSampleRate = 44100.0
-
-  static let defaultNumberOfChannels = 1
-
-  public var format = kAudioFormatMPEG4AAC
-
-  public var sampleRate = defaultSampleRate
-
-  public var numberOfChannels = defaultNumberOfChannels
+    
+    static let defaultSampleRate = 44100.0
+    
+    static let defaultNumberOfChannels = 1
+    
+    public var format = kAudioFormatMPEG4AAC
+    
+    public var sampleRate = defaultSampleRate
+    
+    public var numberOfChannels = defaultNumberOfChannels
 }
 
 extension AudioSettings {
-
-  public init(audioFormat: AVAudioFormat) {
-    sampleRate = audioFormat.sampleRate
-    numberOfChannels = Int(audioFormat.channelCount)
-  }
-
-  public var outputSettings: [String: Any] {
-    [
-      AVFormatIDKey: format,
-      AVSampleRateKey: sampleRate,
-      AVNumberOfChannelsKey: numberOfChannels
-    ]
-  }
+    
+    public init(audioFormat: AVAudioFormat) {
+        sampleRate = audioFormat.sampleRate
+        numberOfChannels = Int(audioFormat.channelCount)
+    }
+    
+    public init(
+        desiredSampleRate: Double = 16_000,
+        desiredChannels: Int? = nil,
+        codec: AudioFormatID = kAudioFormatMPEG4AAC
+    ) {
+        let resolvedChannels = desiredChannels
+        ?? Int(AVAudioSession.sharedInstance().inputNumberOfChannels)
+        
+        if let avFormat = AVAudioFormat(
+            standardFormatWithSampleRate: desiredSampleRate,
+            channels: AVAudioChannelCount(resolvedChannels)
+        ) {
+            print("[AudioSettings] Using requested format ⇒ \(desiredSampleRate) Hz / \(resolvedChannels) ch")
+            self.format = codec
+            self.sampleRate = avFormat.sampleRate
+            self.numberOfChannels = Int(avFormat.channelCount)
+        } else {
+            print("[AudioSettings] Unsupported format \(desiredSampleRate) Hz / \(resolvedChannels) ch; falling back to defaults \(AudioSettings.defaultSampleRate) Hz / \(AudioSettings.defaultNumberOfChannels) ch")
+            self.format = codec
+            self.sampleRate = AudioSettings.defaultSampleRate
+            self.numberOfChannels = AudioSettings.defaultNumberOfChannels
+        }
+    }
+    
+    public var outputSettings: [String: Any] {
+        [
+            AVFormatIDKey: format,
+            AVSampleRateKey: sampleRate,
+            AVNumberOfChannelsKey: numberOfChannels
+        ]
+    }
 }
